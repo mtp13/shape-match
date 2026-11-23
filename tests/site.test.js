@@ -82,6 +82,7 @@ describe("vercel.json headers", () => {
     for (const directive of [
       "default-src 'self'",
       "font-src 'self'",
+      "connect-src 'none'",
       "object-src 'none'",
       "base-uri 'none'",
       "frame-ancestors 'none'",

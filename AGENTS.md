@@ -52,7 +52,8 @@ opens monthly grouped PRs for the npm dev dependencies and GitHub Actions.
 
 ## Headers (`vercel.json`)
 
-`/(.*)` gets a strict CSP (`'self'` only, no `'unsafe-inline'`), `nosniff`,
+`/(.*)` gets a strict CSP (`'self'` only, no `'unsafe-inline'`, and
+`connect-src 'none'` because the game makes no network requests), `nosniff`,
 `Referrer-Policy` and `Permissions-Policy`. Because of the CSP, never add an
 inline `<script>`, `<style>` or `style=""` attribute (setting `element.style`
 from `game.js` is fine). `/`, `index.html`, `game.js` and `style.css` are sent
