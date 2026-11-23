@@ -39,16 +39,16 @@ opens monthly grouped PRs for the npm dev dependencies and GitHub Actions.
 
 ## Layout
 
-| File                           | Purpose                                                       |
-| ------------------------------ | ------------------------------------------------------------- |
-| `index.html`                   | Markup                                                        |
-| `style.css`                    | Styles, including the `@font-face` rules                      |
-| `game.js`                      | All game logic                                                |
-| `fonts/`                       | Self-hosted Roboto Mono (woff2) and its `OFL.txt` license     |
-| `favicon.png`                  | Favicon                                                       |
-| `vercel.json`, `.vercelignore` | CSP and cache headers, deploy rule, and deploy exclusion list |
-| `tests/vercel.test.js`         | Guards the branch-deployment rule (only `master` deploys)     |
-| `tests/site.test.js`           | Checks assets, relative paths, the CSP, and no inline code    |
+| File                                                 | Purpose                                                                        |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `index.html`                                         | Markup                                                                         |
+| `style.css`                                          | Styles, including the `@font-face` rules                                       |
+| `game.js`                                            | All game logic                                                                 |
+| `fonts/`                                             | Self-hosted Roboto Mono (woff2) and its `OFL.txt` license                      |
+| `favicon.svg`, `favicon.png`, `apple-touch-icon.png` | The game's own icon: SVG, a 48×48 PNG fallback, and an opaque 180×180 iOS icon |
+| `vercel.json`, `.vercelignore`                       | CSP and cache headers, deploy rule, and deploy exclusion list                  |
+| `tests/vercel.test.js`                               | Guards the branch-deployment rule (only `master` deploys)                      |
+| `tests/site.test.js`                                 | Checks assets, relative paths, the CSP, and no inline code                     |
 
 ## Headers (`vercel.json`)
 

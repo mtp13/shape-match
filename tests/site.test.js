@@ -27,6 +27,33 @@ describe("index.html", () => {
   });
 });
 
+function pngSize(file) {
+  const buf = fs.readFileSync(path.join(root, file));
+  assert.equal(buf.toString("ascii", 12, 16), "IHDR", `${file} is not a PNG`);
+  return `${buf.readUInt32BE(16)}x${buf.readUInt32BE(20)}`;
+}
+
+describe("icons", () => {
+  it("declares PNG icon sizes that match the files", () => {
+    const icons = [
+      ...html.matchAll(
+        /<link\b[^>]*\bsizes="(\d+x\d+)"[^>]*\bhref="([^"]+\.png)"/g,
+      ),
+    ];
+    assert.ok(icons.length >= 2);
+    for (const [, sizes, href] of icons)
+      assert.equal(pngSize(href), sizes, href);
+  });
+
+  it("has an SVG favicon", () => {
+    assert.match(
+      html,
+      /<link rel="icon" type="image\/svg\+xml" href="favicon.svg"/,
+    );
+    assert.match(read("favicon.svg"), /^<svg\b[^>]*viewBox="0 0 64 64"/);
+  });
+});
+
 describe("style.css", () => {
   it("loads its fonts from local woff2 files that exist", () => {
     const urls = [...css.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]);
