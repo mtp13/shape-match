@@ -1,0 +1,15 @@
+# Tooling and docs: not part of the site. Excluding package.json also stops
+# Vercel from running npm install, since the site needs no build.
+.github/
+tests/
+node_modules/
+package.json
+package-lock.json
+.prettierrc
+.prettierignore
+.htmlvalidate.json
+.editorconfig
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+README.md

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon.png" />
+    <title>Shape Match</title>
+  </head>
+  <body>
+    <header class="bar">
+      <a
+        class="back"
+        href="https://mike.pullen.dev/"
+        aria-label="Back to mike.pullen.dev"
+        >←</a
+      >
+      <p id="level" class="level">Level 1</p>
+      <div class="buttons">
+        <button type="button" id="voice-btn" aria-label="Turn off talking">
+          🗣️
+        </button>
+        <button type="button" id="mute-btn" aria-label="Mute sound">🔊</button>
+      </div>
+    </header>
+    <canvas id="game">Drag each shape into the outline that matches.</canvas>
+    <div id="overlay" class="overlay">
+      <h1>Shape Match</h1>
+      <p>Drag each shape into its matching outline!</p>
+      <button type="button" id="start-btn" class="start">Play</button>
+      <p class="grownups">
+        For ages 3 to 6. It says each shape and color out loud. Each level adds
+        another shape, and from level 3 the outlines lose their colors.
+      </p>
+    </div>
+    <script src="game.js"></script>
+  </body>
+</html>
