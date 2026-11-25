@@ -6,6 +6,17 @@
   src: url("fonts/roboto-mono-latin-700-normal.woff2") format("woff2");
 }
 
+/* Stop double-tap zoom, pull-to-refresh and the grey tap flash on phones. */
+html {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  overscroll-behavior: none;
+}
+
 *,
 *::before,
 *::after {

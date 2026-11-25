@@ -166,14 +166,23 @@
     }
   }
 
+  let utterance = null;
+  let speechReady = false;
   function say(text) {
     if (muted || !talking || !("speechSynthesis" in window)) return;
     try {
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.9;
-      u.pitch = 1.2;
-      speechSynthesis.speak(u);
+      if (speechSynthesis.speaking || speechSynthesis.pending) {
+        speechSynthesis.cancel();
+      }
+      // iOS can leave the queue paused after an interruption (a call, the
+      // screen locking), which silently swallows everything after it.
+      speechSynthesis.resume();
+      // Keep a reference: Safari can drop an utterance that gets
+      // garbage-collected before it finishes.
+      utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1.2;
+      speechSynthesis.speak(utterance);
     } catch {
       // no speech
     }
@@ -188,15 +197,36 @@
       talking ? "Turn off talking" : "Turn on talking",
     );
   }
+  function stopTalking() {
+    try {
+      speechSynthesis.cancel();
+    } catch {
+      // no speech
+    }
+  }
   muteBtn.addEventListener("click", () => {
     muted = !muted;
     store.set("shape-match-muted", muted ? "1" : "0");
     updateButtons();
+    if (muted) stopTalking();
+    else tone(660, 0.15); // confirm straight away, mid-game too
   });
   voiceBtn.addEventListener("click", () => {
     talking = !talking;
     store.set("shape-match-voice", talking ? "1" : "0");
+    if (talking && muted) {
+      // Talking is a sound, so turning it on turns the sound back on too.
+      muted = false;
+      store.set("shape-match-muted", "0");
+    }
     updateButtons();
+    if (!talking) {
+      stopTalking();
+      return;
+    }
+    // Speak right away, from this tap. That confirms it works, and on an
+    // iPhone it is what allows the game to talk again mid-game.
+    say("Talking is on!");
   });
 
   // ---------- level state ----------
@@ -403,6 +433,7 @@
 
   startBtn.addEventListener("click", () => {
     overlay.hidden = true;
+    guardHistory();
     resize();
     newLevel();
     say("Match the shapes!");
@@ -576,4 +607,75 @@
   resize();
   startBtn.focus({ preventScroll: true });
   requestAnimationFrame(frame);
+
+  // ---------- touch-screen kid-proofing ----------
+  // Little hands tap fast and start swipes at the very edge of the screen. On
+  // an iPhone that zooms the page, or swipes back through history mid-game.
+  // style.css also sets `touch-action: manipulation` to stop double-tap zoom.
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    "touchend",
+    (ev) => {
+      // A second tap within 350 ms is a double tap: don't let it zoom. Links
+      // and buttons are left alone so they still click.
+      const onControl = ev.target.closest?.("a, button");
+      if (ev.timeStamp - lastTouchEnd < 350 && !onControl) ev.preventDefault();
+      lastTouchEnd = ev.timeStamp;
+    },
+    { passive: false },
+  );
+  // Safari's pinch zoom.
+  document.addEventListener("gesturestart", (ev) => ev.preventDefault());
+  document.addEventListener(
+    "touchstart",
+    (ev) => {
+      // Safari's back/forward swipe starts with a touch at the very edge.
+      const x = ev.touches[0]?.clientX ?? window.innerWidth / 2;
+      const atEdge = x < 24 || x > window.innerWidth - 24;
+      if (atEdge && !ev.target.closest?.("a, button")) ev.preventDefault();
+    },
+    { passive: false },
+  );
+
+  // Once a game starts, a back swipe that still gets through lands back on the
+  // game instead of leaving it. The ← link still leaves.
+  let guardingHistory = false;
+  function guardHistory() {
+    if (guardingHistory) return;
+    guardingHistory = true;
+    try {
+      history.pushState({ inGame: true }, "");
+      window.addEventListener("popstate", () =>
+        history.pushState({ inGame: true }, ""),
+      );
+    } catch {
+      // history unavailable
+    }
+  }
+
+  // iPhones only let sound start from a finished tap (touchend or click), not
+  // from pointerdown, so wake the audio on every finished tap and key press.
+  function wakeAudio() {
+    if (muted) return;
+    try {
+      audio ??= new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state !== "running") audio.resume();
+    } catch {
+      // no audio
+    }
+    // Speech has the same rule: the first words must come from a finished tap.
+    if (!speechReady && "speechSynthesis" in window) {
+      speechReady = true;
+      try {
+        const u = new SpeechSynthesisUtterance(" ");
+        u.volume = 0;
+        speechSynthesis.speak(u);
+      } catch {
+        // no speech
+      }
+    }
+  }
+  for (const type of ["touchend", "click", "keydown"]) {
+    document.addEventListener(type, wakeAudio, true);
+  }
 })();
