@@ -48,7 +48,35 @@ opens monthly grouped PRs for the npm dev dependencies and GitHub Actions.
 | `favicon.svg`, `favicon.png`, `apple-touch-icon.png` | The game's own icon: SVG, a 48×48 PNG fallback, and an opaque 180×180 iOS icon |
 | `vercel.json`, `.vercelignore`                       | CSP and cache headers, deploy rule, and deploy exclusion list                  |
 | `tests/vercel.test.js`                               | Guards the branch-deployment rule (only `master` deploys)                      |
-| `tests/site.test.js`                                 | Checks assets, relative paths, the CSP, and no inline code                     |
+| `manifest.webmanifest`                               | Home-screen manifest: opens full screen (`display: standalone`)                |
+| `tests/site.test.js`                                 | Checks assets, relative paths, the CSP, no inline code, and the phone guards   |
+
+## Phones and tablets
+
+Young kids play this on iPhones, so `game.js` and `style.css` guard against what
+little hands do by accident. Keep these when you change the game:
+
+- **Zoom:** `html { touch-action: manipulation }` stops double-tap zoom, a
+  `touchend` handler blocks a second tap within 350 ms (except on links and
+  buttons), and `gesturestart` is cancelled to stop Safari's pinch zoom.
+  `overscroll-behavior: none` stops pull-to-refresh.
+- **Back swipes:** a `touchstart` within 24 px of the left or right edge is
+  cancelled (except on links and buttons), since that is how Safari's
+  back/forward swipe starts. Once a game starts, `guardHistory()` pushes a
+  history entry and re-pushes it on `popstate`, so a back swipe that gets
+  through lands back on the game. The ← link still leaves.
+- **Sound:** iOS only lets audio start from a finished tap (`touchend`/`click`),
+  not `pointerdown`, so `wakeAudio()` resumes the `AudioContext` on every
+  finished tap and key press.
+- **Speech:** `wakeAudio()` also speaks one silent utterance on the first
+  finished tap, which iOS requires before any speech. Turning talking on speaks
+  "Talking is on!" from that tap (and unmutes if needed), so it works mid-game.
+  `say()` only cancels a busy queue, calls `speechSynthesis.resume()` (iOS can
+  leave it paused after an interruption) and keeps a reference to the utterance
+  so Safari doesn't drop it.
+- **Home screen:** `manifest.webmanifest` (`display: standalone`) and the
+  `apple-mobile-web-app-capable` meta let the game be added to the Home Screen,
+  where it opens full screen with no browser back swipe at all.
 
 ## Headers (`vercel.json`)
 

@@ -54,6 +54,37 @@ describe("icons", () => {
   });
 });
 
+describe("phones and tablets", () => {
+  it("has a home-screen manifest that opens full screen", () => {
+    const manifest = JSON.parse(read("manifest.webmanifest"));
+    assert.equal(manifest.display, "standalone");
+    assert.equal(manifest.start_url, ".");
+    assert.ok(manifest.name && manifest.short_name);
+    assert.ok(manifest.icons.length > 0);
+    for (const icon of manifest.icons) {
+      assert.ok(
+        fs.existsSync(path.join(root, icon.src)),
+        `Missing ${icon.src}`,
+      );
+    }
+  });
+
+  it("stops double-tap zoom and pull-to-refresh page-wide", () => {
+    const rule = css.match(/(?:^|\n)html \{([^}]*)\}/)?.[1] ?? "";
+    assert.match(rule, /touch-action: manipulation;/);
+    assert.match(rule, /overscroll-behavior: none;/);
+  });
+
+  it("guards against back swipes once a game starts", () => {
+    const js = read("game.js");
+    assert.match(js, /function guardHistory\(\)/);
+    assert.ok(
+      (js.match(/guardHistory\(\);/g) ?? []).length >= 1,
+      "guardHistory() is never called",
+    );
+  });
+});
+
 describe("style.css", () => {
   it("loads its fonts from local woff2 files that exist", () => {
     const urls = [...css.matchAll(/url\("([^"]+)"\)/g)].map((m) => m[1]);
